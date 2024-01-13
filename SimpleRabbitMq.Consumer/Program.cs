@@ -22,6 +22,9 @@ consumer.Received += (model, ea) =>
 {
     var message = Encoding.UTF8.GetString(ea.Body.ToArray());
     Console.WriteLine($" [*] Received \"{message}\"");
+
+    int dots = message.Split( '.' ).Length - 1;
+    Thread.Sleep( dots * 1000 );
 };
 
 channel.BasicConsume(queue: "hello",

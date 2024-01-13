@@ -13,7 +13,7 @@ channel.QueueDeclare(queue: "hello",
                      autoDelete: false,
                      arguments: null);
 
-string message = "Hello from producer";
+string message = GetMessage(args);
 var body = Encoding.UTF8.GetBytes(message);
 
 channel.BasicPublish(exchange: string.Empty,
@@ -22,3 +22,8 @@ channel.BasicPublish(exchange: string.Empty,
                      body: body);
 
 Console.WriteLine($"Sent message - {message}");
+
+static string GetMessage(string[] args)
+{
+    return args.Length > 0 ? string.Join(" ", args) : "Hello from producer";
+}
