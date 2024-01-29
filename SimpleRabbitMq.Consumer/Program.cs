@@ -9,12 +9,28 @@ var factory = new ConnectionFactory() { HostName = "192.168.194.128" };
 using var connection = factory.CreateConnection();
 using var channel = connection.CreateModel();
 
-channel.ExchangeDeclare(exchange: "logs", type: ExchangeType.Fanout);
+channel.ExchangeDeclare(exchange: "topic_logs", type: ExchangeType.Topic);
+
 var queueName = channel.QueueDeclare().QueueName;
 
-channel.QueueBind(queue: queueName, exchange: "logs", routingKey: string.Empty, null);
+if (args.Length < 1)
+{
+    Console.Error.WriteLine("Usage: {0} [binding_key...]",
+                            Environment.GetCommandLineArgs()[0]);
+    Console.WriteLine(" Press [enter] to exit.");
+    Console.ReadLine();
+    Environment.ExitCode = 1;
+    return;
+}
 
-Console.WriteLine(" [*] Waiting for logs.");
+foreach (var bindingKey in args)
+{
+    channel.QueueBind(queue: queueName,
+                      exchange: "topic_logs",
+                      routingKey: bindingKey);
+}
+
+Console.WriteLine(" [*] Waiting for messages.");
 
 var consumer = new EventingBasicConsumer(channel);
 consumer.Received += (model, ea) =>
