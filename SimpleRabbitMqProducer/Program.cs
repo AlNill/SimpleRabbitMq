@@ -1,22 +1,20 @@
-﻿using RabbitMQ.Client;
-using System.Text;
+﻿using System.Text;
+using RabbitMQ.Client;
 
-Console.WriteLine("Producer main thread.");
+var factory = new ConnectionFactory { HostName = "192.168.194.128" };
 
-var factory = new ConnectionFactory() { HostName = "192.168.194.128" };
 using var connection = factory.CreateConnection();
 using var channel = connection.CreateModel();
 
-channel.ExchangeDeclare(exchange: "direct_logs", type: ExchangeType.Direct);
+channel.ExchangeDeclare(exchange: "topic_logs", type: ExchangeType.Topic);
 
-var severity = (args.Length > 0) ? args[0] : "info";
-
-
-string message = args.Length > 1 ? string.Join(" ", args.Skip(1).ToArray()) : "Hello world";
-    
+var routingKey = (args.Length > 0) ? args[0] : "anonymous.info";
+var message = (args.Length > 1)
+              ? string.Join(" ", args.Skip(1).ToArray())
+              : "Hello World!";
 var body = Encoding.UTF8.GetBytes(message);
-channel.BasicPublish(exchange: "direct_logs", routingKey: severity, null, body);
-Console.WriteLine($"Sent logs - {message}");
-
-Console.WriteLine($"Press [enter] to exit.");
-Console.ReadLine();
+channel.BasicPublish(exchange: "topic_logs",
+                     routingKey: routingKey,
+                     basicProperties: null,
+                     body: body);
+Console.WriteLine($" [x] Sent '{routingKey}':'{message}'");
